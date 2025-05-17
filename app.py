@@ -64,11 +64,13 @@ def calculate_metrics(y_true, y_pred_proba, cutoff):
     参数:
     y_true: 真实标签
     y_pred_proba: 预测概率
+    cutoff: 分类阈值
 
     返回:
     metrics: 包含各项指标的字典
     fpr, tpr: ROC曲线的假阳性率和真阳性率
     roc_auc: ROC曲线下面积
+    y_pred: 预测标签
     """
     # 将概率转换为预测标签（阈值cutoff）
     y_pred = (y_pred_proba >= cutoff).astype(int)
@@ -79,12 +81,12 @@ def calculate_metrics(y_true, y_pred_proba, cutoff):
 
     # 计算各项指标
     metrics = {
-        'AUC': roc_auc,  # AUC
-        'Accuracy': accuracy_score(y_true, y_pred),    # 准确率
-        'Precision': precision_score(y_true, y_pred),  # 精确率
-        'Recall': recall_score(y_true, y_pred),        # 召回率
-        'F1 Score': f1_score(y_true, y_pred),           # F1分数
-        'Cutoff': cutoff  # cutoff
+        'AUC': round(roc_auc, 3),  # AUC
+        'Accuracy': round(accuracy_score(y_true, y_pred), 3),    # 准确率
+        'Precision': round(precision_score(y_true, y_pred), 3),  # 精确率
+        'Recall': round(recall_score(y_true, y_pred), 3),        # 召回率
+        'F1 Score': round(f1_score(y_true, y_pred), 3),           # F1分数
+        'Cutoff': round(cutoff, 3)  # cutoff
     }
 
     return metrics, fpr, tpr, roc_auc, y_pred
@@ -145,6 +147,9 @@ def main():
             'Value': [metrics['AUC'], metrics['Accuracy'], metrics['Precision'], 
                      metrics['Recall'], metrics['F1 Score'], metrics['Cutoff']]
         })
+        
+        # 设置显示格式为3位小数
+        pd.set_option('display.float_format', lambda x: '%.3f' % x)
         
         # 显示指标数据框
         st.write("Model Performance Metrics:")
