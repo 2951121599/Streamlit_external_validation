@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt  # 用于数据可视化
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_curve, auc  # 用于计算评估指标
 from matplotlib import rcParams  # 用于设置matplotlib的字体和样式
 import io  # 用于处理内存中的文件对象
+import os
+
 
 # 配置matplotlib的显示参数
 rcParams['font.family'] = 'sans-serif'  # 设置字体
@@ -39,31 +41,46 @@ st.markdown("""
 """)
 
 # 加载预训练模型
-
-
 @st.cache_resource
 def load_model():
     """加载预训练的深度学习模型"""
     return tf.keras.models.load_model('data/MODEL_2025_05_16_19_37_41.h5')
 
 # 加载验证数据
-
-
 @st.cache_data
 def load_validation_data():
     """加载外部验证数据集"""
     df = pd.read_excel('data/merge_external_validation.xlsx')
     return df.iloc[:, :-2], df.iloc[:, -1]
 
+
+# 模型的cutoff值
+def find_model_cutoff(base_path, model_folder, test_filename):
+    model_path = os.path.join(base_path, model_folder)
+    test_path = os.path.join(base_path, test_filename)
+    
+    test_df = pd.read_excel(test_path)
+    
+    val_file = next(f for f in os.listdir(model_path) 
+                   if "val_result__MODEL" in f and f.endswith('.xlsx'))
+    val_df = pd.read_excel(os.path.join(model_path, val_file))
+    
+    y_true = test_df.iloc[:, -1]
+    y_pred = val_df.iloc[:, -1]
+    
+    fpr, tpr, thresholds = roc_curve(y_true, y_pred)
+    model_cutoff = round(thresholds[np.argmax(tpr - fpr)], 3)
+    
+    return model_cutoff
+
+
+    
 # 计算评估指标的函数
-
-
-def calculate_metrics(y_true, y_pred_proba):
+def calculate_metrics(y_true, y_pred_proba, cutoff):
     # 根据模型的cutoff值计算ROC曲线
     fpr, tpr, thresholds = roc_curve(y_true, y_pred_proba)
     roc_auc = auc(fpr, tpr)
-    cutoff = thresholds[np.argmax(tpr - fpr)]
-    print("cutoff:", cutoff)
+
 
     # 将概率转换为预测标签（阈值cutoff）
     y_pred = (y_pred_proba >= cutoff).astype(int)
@@ -90,14 +107,22 @@ def main():
     # 主要内容
     st.header("Model Performance Metrics")  # 模型性能指标
 
+    base_path = "/Users/taylor/DIJI-Workspace/17-崔文强-脑卒中/训练测试集"
+    model_folder = "模型训练结果/model_403"
+    test_filename = "test_set.xlsx"
+    
+    model_cutoff = find_model_cutoff(base_path, model_folder, test_filename)
+    print(f"model_cutoff: {model_cutoff}")
+    
     # 进行预测
     y_pred_proba = model.predict(X_val, verbose=0)
+    
 
     # 如果有真实标签，计算评估指标
     if y_true is not None:
         # 计算评估指标
-        metrics, fpr, tpr, roc_auc, y_pred, cutoff = calculate_metrics(
-            y_true, y_pred_proba)
+        metrics, fpr, tpr, roc_auc, y_pred = calculate_metrics(
+            y_true, y_pred_proba, model_cutoff)
 
         # 在网格中显示指标，增加auc,acc,precision,recall,f1,cutoff
         col1, col2, col3, col4, col5, col6 = st.columns(6)
@@ -112,7 +137,7 @@ def main():
         with col5:
             st.metric("F1 Score", f"{metrics['F1 Score']:.3f}")    # 显示F1分数
         with col6:
-            st.metric("Cutoff", f"{cutoff:.3f}")    # 显示cutoff
+            st.metric("Cutoff", f"{model_cutoff:.3f}")    # 显示cutoff
         # 绘制ROC曲线
         st.header("ROC Curve")
         fig, ax = plt.subplots(figsize=(8, 6))
