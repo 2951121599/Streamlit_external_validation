@@ -123,7 +123,7 @@ def main():
     # 如果有真实标签，计算评估指标
     if y_true is not None:
         # 计算评估指标
-        metrics, fpr, tpr, roc_auc, y_pred = calculate_metrics(
+        metrics, fpr, tpr, roc_auc, y_pred, cutoff = calculate_metrics(
             y_true, y_pred_proba, model_cutoff)
 
         # 在网格中显示指标，增加auc,acc,precision,recall,f1,cutoff
@@ -139,7 +139,7 @@ def main():
         with col5:
             st.metric("F1 Score", f"{metrics['F1 Score']:.3f}")    # 显示F1分数
         with col6:
-            st.metric("Cutoff", f"{model_cutoff:.3f}")    # 显示cutoff
+            st.metric("Cutoff", f"{cutoff:.3f}")    # 显示cutoff
         # 绘制ROC曲线
         st.header("ROC Curve")
         fig, ax = plt.subplots(figsize=(8, 6))
