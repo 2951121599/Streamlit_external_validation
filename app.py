@@ -58,14 +58,13 @@ def load_validation_data():
 # 计算评估指标的函数
 
 
-def calculate_metrics(y_true, y_pred_proba, cutoff):
+def calculate_metrics(y_true, y_pred_proba):
     """
     计算模型性能指标
 
     参数:
     y_true: 真实标签
     y_pred_proba: 预测概率
-    cutoff: 分类阈值
 
     返回:
     metrics: 包含各项指标的字典
@@ -77,8 +76,10 @@ def calculate_metrics(y_true, y_pred_proba, cutoff):
     y_pred = (y_pred_proba >= cutoff).astype(int)
 
     # 根据模型的cutoff值计算ROC曲线
-    fpr, tpr, _ = roc_curve(y_true, y_pred_proba)
+    fpr, tpr, thresholds = roc_curve(y_true, y_pred_proba)
     roc_auc = auc(fpr, tpr)
+    cutoff = thresholds[np.argmax(tpr - fpr)]
+    print("cutoff:", cutoff)
 
     # 计算各项指标
     metrics = {
@@ -90,7 +91,7 @@ def calculate_metrics(y_true, y_pred_proba, cutoff):
         'Cutoff': round(cutoff, 3)  # cutoff
     }
 
-    return metrics, fpr, tpr, roc_auc, y_pred
+    return metrics, fpr, tpr, roc_auc, y_pred, cutoff
 
 
 # 主程序
@@ -98,7 +99,6 @@ def main():
     # 加载模型和数据
     model = load_model()
     X_val, y_true = load_validation_data()
-    cutoff = 0.587
 
     # 主要内容
     st.header("Model Performance Metrics")  # 模型性能指标
@@ -109,7 +109,7 @@ def main():
     # 如果有真实标签，计算评估指标
     if y_true is not None:
         # 计算评估指标
-        metrics, fpr, tpr, roc_auc, y_pred = calculate_metrics(y_true, y_pred_proba, cutoff)
+        metrics, fpr, tpr, roc_auc, y_pred, cutoff = calculate_metrics(y_true, y_pred_proba)
 
         # 在网格中显示指标，增加auc,acc,precision,recall,f1,cutoff
         col1, col2, col3, col4, col5, col6 = st.columns(6)
@@ -137,15 +137,15 @@ def main():
         ax.set_ylabel('True Positive Rate')   # 设置y轴标签
         ax.set_title('External Validation ROC Curve')  # 设置标题
         ax.legend(loc="lower right")  # 添加图例
-        
+
         # 保存ROC曲线为PDF
         buf = io.BytesIO()
         fig.savefig(buf, format='pdf', bbox_inches='tight', dpi=300)
         buf.seek(0)
-        
+
         # 显示ROC曲线
         st.pyplot(fig)
-        
+
         # 添加PDF下载按钮
         st.download_button(
             label="Download ROC Curve (PDF)",
@@ -153,38 +153,38 @@ def main():
             file_name='roc_curve.pdf',
             mime='application/pdf'
         )
-        
+
         # 关闭图形，释放内存
         plt.close(fig)
 
         # 创建评估结果数据框
         st.header("Evaluation Results")
-        
+
         # 创建指标数据框
         metrics_df = pd.DataFrame({
             'Metric': ['AUC', 'Accuracy', 'Precision', 'Recall', 'F1 Score', 'Cutoff'],
-            'Value': [metrics['AUC'], metrics['Accuracy'], metrics['Precision'], 
-                     metrics['Recall'], metrics['F1 Score'], metrics['Cutoff']]
+            'Value': [metrics['AUC'], metrics['Accuracy'], metrics['Precision'],
+                      metrics['Recall'], metrics['F1 Score'], metrics['Cutoff']]
         })
-        
+
         # 设置显示格式为3位小数
         pd.set_option('display.float_format', lambda x: '%.3f' % x)
-        
+
         # 显示指标数据框
         st.write("Model Performance Metrics:")
         st.dataframe(metrics_df)
-        
+
         # 创建预测结果数据框
         results_df = pd.DataFrame({
             'True Label': y_true,  # 真实标签
             'Predicted Label': y_pred.flatten(),  # 预测标签
             'Predicted Probability': y_pred_proba.flatten()  # 预测概率
         })
-        
+
         # 显示预测结果数据框
         st.write("Prediction Results:")
         st.dataframe(results_df)
-        
+
         # 添加下载按钮
         st.download_button(
             label="Download Evaluation Results",
@@ -192,7 +192,7 @@ def main():
             file_name='evaluation_metrics.csv',
             mime='text/csv',
         )
-        
+
         st.download_button(
             label="Download Prediction Results",
             data=results_df.to_csv(index=False).encode('utf-8'),
