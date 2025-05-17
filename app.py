@@ -2,7 +2,7 @@
 import streamlit as st  # Streamlit用于创建Web应用界面
 import pandas as pd     # 用于数据处理和分析
 import numpy as np      # 用于数值计算
-import tensorflow as tf # 用于加载深度学习模型
+import tensorflow as tf  # 用于加载深度学习模型
 import matplotlib.pyplot as plt  # 用于数据可视化
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_curve, auc  # 用于计算评估指标
 from matplotlib import rcParams  # 用于设置matplotlib的字体和样式
@@ -38,12 +38,16 @@ st.markdown("""
 """)
 
 # 加载预训练模型
+
+
 @st.cache_resource
 def load_model():
     """加载预训练的深度学习模型"""
     return tf.keras.models.load_model('data/model_20_0MODEL_2025_05_16_16_19_26.h5')
 
 # 加载验证数据
+
+
 @st.cache_data
 def load_validation_data():
     """加载外部验证数据集"""
@@ -51,22 +55,29 @@ def load_validation_data():
     return df.iloc[:, :-2], df.iloc[:, -1]
 
 # 计算评估指标的函数
+
+
 def calculate_metrics(y_true, y_pred_proba):
     """
     计算模型性能指标
-    
+
     参数:
     y_true: 真实标签
     y_pred_proba: 预测概率
-    
+
     返回:
     metrics: 包含各项指标的字典
     fpr, tpr: ROC曲线的假阳性率和真阳性率
     roc_auc: ROC曲线下面积
     """
-    # 将概率转换为预测标签（阈值0.5）
-    y_pred = (y_pred_proba >= 0.5).astype(int)
-    
+    # 将概率转换为预测标签（阈值cutoff）
+    cutoff = 0.587
+    y_pred = (y_pred_proba >= cutoff).astype(int)
+
+    # 输出y_true和y_pred
+    st.write(y_true)
+    st.write(y_pred)
+
     # 计算各项指标
     metrics = {
         'Accuracy': accuracy_score(y_true, y_pred),    # 准确率
@@ -74,16 +85,16 @@ def calculate_metrics(y_true, y_pred_proba):
         'Recall': recall_score(y_true, y_pred),        # 召回率
         'F1 Score': f1_score(y_true, y_pred)           # F1分数
     }
+
     # 根据模型的cutoff值计算ROC曲线
-    cutoff = 0.587
-    y_pred = (y_pred_proba >= cutoff).astype(int)
-    
     fpr, tpr, _ = roc_curve(y_true, y_pred)
     roc_auc = auc(fpr, tpr)
-    
+
     return metrics, fpr, tpr, roc_auc
 
 # 主程序
+
+
 def main():
     # 加载模型和数据
     model = load_model()
@@ -114,7 +125,8 @@ def main():
         # 绘制ROC曲线
         st.header("ROC Curve")
         fig, ax = plt.subplots(figsize=(8, 6))
-        ax.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {roc_auc:.3f})')  # 绘制ROC曲线
+        ax.plot(fpr, tpr, color='darkorange', lw=2,
+                label=f'ROC curve (AUC = {roc_auc:.3f})')  # 绘制ROC曲线
         ax.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')  # 绘制对角线
         ax.set_xlim([0.0, 1.0])
         ax.set_ylim([0.0, 1.05])
@@ -140,7 +152,9 @@ def main():
 
     # 页脚
     st.markdown("---")
-    st.markdown(f"External Validation Analysis | Updated: {pd.Timestamp.now().strftime('%Y-%m-%d')}")
+    st.markdown(
+        f"External Validation Analysis | Updated: {pd.Timestamp.now().strftime('%Y-%m-%d')}")
+
 
 if __name__ == "__main__":
     main()
