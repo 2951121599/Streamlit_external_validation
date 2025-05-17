@@ -57,7 +57,7 @@ def load_validation_data():
 # 计算评估指标的函数
 
 
-def calculate_metrics(y_true, y_pred_proba):
+def calculate_metrics(y_true, y_pred_proba, cutoff):
     """
     计算模型性能指标
 
@@ -71,7 +71,6 @@ def calculate_metrics(y_true, y_pred_proba):
     roc_auc: ROC曲线下面积
     """
     # 将概率转换为预测标签（阈值cutoff）
-    cutoff = 0.587
     y_pred = (y_pred_proba >= cutoff).astype(int)
 
     # 根据模型的cutoff值计算ROC曲线
@@ -96,6 +95,7 @@ def main():
     # 加载模型和数据
     model = load_model()
     X_val, y_true = load_validation_data()
+    cutoff = 0.587
 
     # 主要内容
     st.header("Model Performance Metrics")  # 模型性能指标
@@ -106,7 +106,7 @@ def main():
     # 如果有真实标签，计算评估指标
     if y_true is not None:
         # 计算评估指标
-        metrics, fpr, tpr, roc_auc = calculate_metrics(y_true, y_pred_proba)
+        metrics, fpr, tpr, roc_auc = calculate_metrics(y_true, y_pred_proba, cutoff)
 
         # 在网格中显示指标，增加auc,acc,precision,recall,f1,cutoff
         col1, col2, col3, col4, col5, col6 = st.columns(6)
