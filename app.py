@@ -41,12 +41,16 @@ st.markdown("""
 """)
 
 # 加载预训练模型
+
+
 @st.cache_resource
 def load_model():
     """加载预训练的深度学习模型"""
     return tf.keras.models.load_model('data/MODEL_2025_05_16_19_37_41.h5')
 
 # 加载验证数据
+
+
 @st.cache_data
 def load_validation_data():
     """加载外部验证数据集"""
@@ -55,32 +59,28 @@ def load_validation_data():
 
 
 # 模型的cutoff值
-def find_model_cutoff(base_path, model_folder, test_filename):
-    model_path = os.path.join(base_path, model_folder)
-    test_path = os.path.join(base_path, test_filename)
-    
-    test_df = pd.read_excel(test_path)
-    
-    val_file = next(f for f in os.listdir(model_path) 
-                   if "val_result__MODEL" in f and f.endswith('.xlsx'))
-    val_df = pd.read_excel(os.path.join(model_path, val_file))
-    
-    y_true = test_df.iloc[:, -1]
-    y_pred = val_df.iloc[:, -1]
-    
-    fpr, tpr, thresholds = roc_curve(y_true, y_pred)
-    model_cutoff = round(thresholds[np.argmax(tpr - fpr)], 3)
-    
-    return model_cutoff
+def find_model_cutoff():
+    df = pd.read_csv('data/val_combine.csv')
+    y_true = df.iloc[:, 0]
+    # 如果有多列，则计算每一列的cutoff值
+    # # 创建cutoff数据框
+    cutoff_df = pd.DataFrame()
+    cutoff_df['model'] = df.columns[1:]
+    y_pred = df.iloc[:, 1:]
+    cutoff_values = []
+    for col in y_pred.columns:
+        fpr, tpr, thresholds = roc_curve(y_true, y_pred[col])
+        cutoff = round(thresholds[np.argmax(tpr - fpr)], 3)
+        cutoff_values.append(cutoff)
+        cutoff_df[col] = cutoff
+    return cutoff_df
 
 
-    
 # 计算评估指标的函数
 def calculate_metrics(y_true, y_pred_proba, cutoff):
     # 根据模型的cutoff值计算ROC曲线
     fpr, tpr, thresholds = roc_curve(y_true, y_pred_proba)
     roc_auc = auc(fpr, tpr)
-
 
     # 将概率转换为预测标签（阈值cutoff）
     y_pred = (y_pred_proba >= cutoff).astype(int)
@@ -107,16 +107,18 @@ def main():
     # 主要内容
     st.header("Model Performance Metrics")  # 模型性能指标
 
-    base_path = "/Users/taylor/DIJI-Workspace/17-崔文强-脑卒中/训练测试集"
-    model_folder = "模型训练结果/model_403"
-    test_filename = "test_set.xlsx"
+    # 计算cutoff值
+    cutoff_df = find_model_cutoff()
     
-    model_cutoff = find_model_cutoff(base_path, model_folder, test_filename)
+    # 显示cutoff数据框
+    st.write("Model Cutoff:")
+    st.dataframe(cutoff_df)
+        
+    model_cutoff = cutoff_df.iloc[1, 1]
     print(f"model_cutoff: {model_cutoff}")
-    
+
     # 进行预测
     y_pred_proba = model.predict(X_val, verbose=0)
-    
 
     # 如果有真实标签，计算评估指标
     if y_true is not None:
