@@ -74,7 +74,7 @@ def calculate_metrics(y_true, y_pred_proba, cutoff):
     y_pred = (y_pred_proba >= cutoff).astype(int)
 
     # 根据模型的cutoff值计算ROC曲线
-    fpr, tpr, _ = roc_curve(y_true, y_pred)
+    fpr, tpr, _ = roc_curve(y_true, y_pred_proba)
     roc_auc = auc(fpr, tpr)
 
     # 计算各项指标
