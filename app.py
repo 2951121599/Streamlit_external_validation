@@ -6,6 +6,7 @@ import tensorflow as tf  # 用于加载深度学习模型
 import matplotlib.pyplot as plt  # 用于数据可视化
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_curve, auc  # 用于计算评估指标
 from matplotlib import rcParams  # 用于设置matplotlib的字体和样式
+import io  # 用于处理内存中的文件对象
 
 # 配置matplotlib的显示参数
 rcParams['font.family'] = 'sans-serif'  # 设置字体
@@ -136,7 +137,25 @@ def main():
         ax.set_ylabel('True Positive Rate')   # 设置y轴标签
         ax.set_title('External Validation ROC Curve')  # 设置标题
         ax.legend(loc="lower right")  # 添加图例
+        
+        # 保存ROC曲线为PDF
+        buf = io.BytesIO()
+        fig.savefig(buf, format='pdf', bbox_inches='tight', dpi=300)
+        buf.seek(0)
+        
+        # 显示ROC曲线
         st.pyplot(fig)
+        
+        # 添加PDF下载按钮
+        st.download_button(
+            label="Download ROC Curve (PDF)",
+            data=buf,
+            file_name='roc_curve.pdf',
+            mime='application/pdf'
+        )
+        
+        # 关闭图形，释放内存
+        plt.close(fig)
 
         # 创建评估结果数据框
         st.header("Evaluation Results")
