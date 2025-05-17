@@ -87,7 +87,7 @@ def calculate_metrics(y_true, y_pred_proba, cutoff):
         'Cutoff': cutoff  # cutoff
     }
 
-    return metrics, fpr, tpr, roc_auc
+    return metrics, fpr, tpr, roc_auc, y_pred
 
 
 # 主程序
@@ -106,7 +106,7 @@ def main():
     # 如果有真实标签，计算评估指标
     if y_true is not None:
         # 计算评估指标
-        metrics, fpr, tpr, roc_auc = calculate_metrics(y_true, y_pred_proba, cutoff)
+        metrics, fpr, tpr, roc_auc, y_pred = calculate_metrics(y_true, y_pred_proba, cutoff)
 
         # 在网格中显示指标，增加auc,acc,precision,recall,f1,cutoff
         col1, col2, col3, col4, col5, col6 = st.columns(6)
