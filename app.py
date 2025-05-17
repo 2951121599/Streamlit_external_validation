@@ -75,8 +75,7 @@ def calculate_metrics(y_true, y_pred_proba):
     y_pred = (y_pred_proba >= cutoff).astype(int)
 
     # 输出y_true和y_pred
-    st.write(y_true)
-    st.write(y_pred)
+    st.write(y_true, y_pred, y_pred_proba)
 
     # 计算各项指标
     metrics = {
