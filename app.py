@@ -136,16 +136,45 @@ def main():
         ax.legend(loc="lower right")  # 添加图例
         st.pyplot(fig)
 
-    # 显示详细结果
-    st.header("Detailed Results")
-    # 创建结果数据框
-    results_df = pd.DataFrame({
-        'True Label': y_true,  # 真实标签
-        'Predicted Label': y_pred.flatten(),  # 预测标签
-        'Predicted Probability': y_pred_proba.flatten()  # 预测概率
-    })
-
-    st.dataframe(results_df)  # 显示结果表格
+        # 创建评估结果数据框
+        st.header("Evaluation Results")
+        
+        # 创建指标数据框
+        metrics_df = pd.DataFrame({
+            'Metric': ['AUC', 'Accuracy', 'Precision', 'Recall', 'F1 Score', 'Cutoff'],
+            'Value': [metrics['AUC'], metrics['Accuracy'], metrics['Precision'], 
+                     metrics['Recall'], metrics['F1 Score'], metrics['Cutoff']]
+        })
+        
+        # 显示指标数据框
+        st.write("Model Performance Metrics:")
+        st.dataframe(metrics_df)
+        
+        # 创建预测结果数据框
+        results_df = pd.DataFrame({
+            'True Label': y_true,  # 真实标签
+            'Predicted Label': y_pred.flatten(),  # 预测标签
+            'Predicted Probability': y_pred_proba.flatten()  # 预测概率
+        })
+        
+        # 显示预测结果数据框
+        st.write("Prediction Results:")
+        st.dataframe(results_df)
+        
+        # 添加下载按钮
+        st.download_button(
+            label="Download Evaluation Results",
+            data=metrics_df.to_csv(index=False).encode('utf-8'),
+            file_name='evaluation_metrics.csv',
+            mime='text/csv',
+        )
+        
+        st.download_button(
+            label="Download Prediction Results",
+            data=results_df.to_csv(index=False).encode('utf-8'),
+            file_name='prediction_results.csv',
+            mime='text/csv',
+        )
 
     # 页脚
     st.markdown("---")
