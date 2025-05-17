@@ -114,7 +114,7 @@ def main():
     st.write("Model Cutoff:")
     st.dataframe(cutoff_df)
         
-    model_cutoff = cutoff_df.iloc[1, 1]
+    model_cutoff = cutoff_df.iloc[0, 1]
     print(f"model_cutoff: {model_cutoff}")
 
     # 进行预测
