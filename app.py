@@ -74,9 +74,11 @@ def calculate_metrics(y_true, y_pred_proba):
         'Recall': recall_score(y_true, y_pred),        # 召回率
         'F1 Score': f1_score(y_true, y_pred)           # F1分数
     }
+    # 根据模型的cutoff值计算ROC曲线
+    cutoff = 0.587
+    y_pred = (y_pred_proba >= cutoff).astype(int)
     
-    # 计算ROC曲线
-    fpr, tpr, _ = roc_curve(y_true, y_pred_proba)
+    fpr, tpr, _ = roc_curve(y_true, y_pred)
     roc_auc = auc(fpr, tpr)
     
     return metrics, fpr, tpr, roc_auc
@@ -118,23 +120,23 @@ def main():
         ax.set_ylim([0.0, 1.05])
         ax.set_xlabel('False Positive Rate')  # 设置x轴标签
         ax.set_ylabel('True Positive Rate')   # 设置y轴标签
-        ax.set_title('Receiver Operating Characteristic (ROC) Curve')  # 设置标题
+        ax.set_title('External Validation ROC Curve')  # 设置标题
         ax.legend(loc="lower right")  # 添加图例
         st.pyplot(fig)
 
-    # 显示详细结果
-    st.header("Detailed Results")
-    # 创建结果数据框
-    results_df = pd.DataFrame({
-        'Predicted Probability': y_pred_proba.flatten(),  # 预测概率
-        'Predicted Label': (y_pred_proba >= 0.5).astype(int)  # 预测标签
-    })
+    # # 显示详细结果
+    # st.header("Detailed Results")
+    # # 创建结果数据框
+    # results_df = pd.DataFrame({
+    #     'Predicted Probability': y_pred_proba.flatten(),  # 预测概率
+    #     'Predicted Label': (y_pred_proba >= 0.5).astype(int)  # 预测标签
+    # })
 
-    # 如果有真实标签，添加到结果中
-    if y_true is not None:
-        results_df['True Label'] = y_true
+    # # 如果有真实标签，添加到结果中
+    # if y_true is not None:
+    #     results_df['True Label'] = y_true
 
-    st.dataframe(results_df)  # 显示结果表格
+    # st.dataframe(results_df)  # 显示结果表格
 
     # 页脚
     st.markdown("---")
