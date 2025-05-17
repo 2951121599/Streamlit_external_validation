@@ -59,27 +59,14 @@ def load_validation_data():
 
 
 def calculate_metrics(y_true, y_pred_proba):
-    """
-    计算模型性能指标
-
-    参数:
-    y_true: 真实标签
-    y_pred_proba: 预测概率
-
-    返回:
-    metrics: 包含各项指标的字典
-    fpr, tpr: ROC曲线的假阳性率和真阳性率
-    roc_auc: ROC曲线下面积
-    y_pred: 预测标签
-    """
-    # 将概率转换为预测标签（阈值cutoff）
-    y_pred = (y_pred_proba >= cutoff).astype(int)
-
     # 根据模型的cutoff值计算ROC曲线
     fpr, tpr, thresholds = roc_curve(y_true, y_pred_proba)
     roc_auc = auc(fpr, tpr)
     cutoff = thresholds[np.argmax(tpr - fpr)]
     print("cutoff:", cutoff)
+
+    # 将概率转换为预测标签（阈值cutoff）
+    y_pred = (y_pred_proba >= cutoff).astype(int)
 
     # 计算各项指标
     metrics = {
@@ -109,7 +96,8 @@ def main():
     # 如果有真实标签，计算评估指标
     if y_true is not None:
         # 计算评估指标
-        metrics, fpr, tpr, roc_auc, y_pred, cutoff = calculate_metrics(y_true, y_pred_proba)
+        metrics, fpr, tpr, roc_auc, y_pred, cutoff = calculate_metrics(
+            y_true, y_pred_proba)
 
         # 在网格中显示指标，增加auc,acc,precision,recall,f1,cutoff
         col1, col2, col3, col4, col5, col6 = st.columns(6)
