@@ -48,7 +48,7 @@ def load_model():
 def load_validation_data():
     """加载外部验证数据集"""
     df = pd.read_excel('data/merge_external_validation.xlsx')
-    return df.iloc[:, 1:-2], df.iloc[:, -1]
+    return df.iloc[:, :-2], df.iloc[:, -1]
 
 # 计算评估指标的函数
 def calculate_metrics(y_true, y_pred_proba):
