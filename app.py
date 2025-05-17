@@ -141,7 +141,7 @@ def main():
     # 创建结果数据框
     results_df = pd.DataFrame({
         'True Label': y_true,  # 真实标签
-        'Predicted Label': y_pred,  # 预测标签
+        'Predicted Label': y_pred.flatten(),  # 预测标签
         'Predicted Probability': y_pred_proba.flatten()  # 预测概率
     })
 
