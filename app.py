@@ -79,10 +79,12 @@ def calculate_metrics(y_true, y_pred_proba):
 
     # 计算各项指标
     metrics = {
+        'AUC': roc_auc,  # AUC
         'Accuracy': accuracy_score(y_true, y_pred),    # 准确率
         'Precision': precision_score(y_true, y_pred),  # 精确率
         'Recall': recall_score(y_true, y_pred),        # 召回率
-        'F1 Score': f1_score(y_true, y_pred)           # F1分数
+        'F1 Score': f1_score(y_true, y_pred),           # F1分数
+        'Cutoff': cutoff  # cutoff
     }
 
     # 根据模型的cutoff值计算ROC曲线
@@ -110,17 +112,20 @@ def main():
         # 计算评估指标
         metrics, fpr, tpr, roc_auc = calculate_metrics(y_true, y_pred_proba)
 
-        # 在网格中显示指标
-        col1, col2, col3, col4 = st.columns(4)
+        # 在网格中显示指标，增加auc,acc,precision,recall,f1,cutoff
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
         with col1:
-            st.metric("Accuracy", f"{metrics['Accuracy']:.3f}")    # 显示准确率
+            st.metric("AUC", f"{metrics['AUC']:.3f}")    # 显示AUC
         with col2:
-            st.metric("Precision", f"{metrics['Precision']:.3f}")  # 显示精确率
+            st.metric("Accuracy", f"{metrics['Accuracy']:.3f}")    # 显示准确率
         with col3:
-            st.metric("Recall", f"{metrics['Recall']:.3f}")        # 显示召回率
+            st.metric("Precision", f"{metrics['Precision']:.3f}")  # 显示精确率
         with col4:
+            st.metric("Recall", f"{metrics['Recall']:.3f}")        # 显示召回率
+        with col5:
             st.metric("F1 Score", f"{metrics['F1 Score']:.3f}")    # 显示F1分数
-
+        with col6:
+            st.metric("Cutoff", f"{cutoff:.3f}")    # 显示cutoff
         # 绘制ROC曲线
         st.header("ROC Curve")
         fig, ax = plt.subplots(figsize=(8, 6))
@@ -135,19 +140,16 @@ def main():
         ax.legend(loc="lower right")  # 添加图例
         st.pyplot(fig)
 
-    # # 显示详细结果
-    # st.header("Detailed Results")
-    # # 创建结果数据框
-    # results_df = pd.DataFrame({
-    #     'Predicted Probability': y_pred_proba.flatten(),  # 预测概率
-    #     'Predicted Label': (y_pred_proba >= 0.5).astype(int)  # 预测标签
-    # })
+    # 显示详细结果
+    st.header("Detailed Results")
+    # 创建结果数据框
+    results_df = pd.DataFrame({
+        'True Label': y_true,  # 真实标签
+        'Predicted Label': (y_pred),  # 预测标签
+        'Predicted Probability': y_pred_proba.flatten()  # 预测概率
+    })
 
-    # # 如果有真实标签，添加到结果中
-    # if y_true is not None:
-    #     results_df['True Label'] = y_true
-
-    # st.dataframe(results_df)  # 显示结果表格
+    st.dataframe(results_df)  # 显示结果表格
 
     # 页脚
     st.markdown("---")
