@@ -74,8 +74,9 @@ def calculate_metrics(y_true, y_pred_proba):
     cutoff = 0.587
     y_pred = (y_pred_proba >= cutoff).astype(int)
 
-    # 输出y_true和y_pred
-    st.write(y_true, y_pred, y_pred_proba)
+    # 根据模型的cutoff值计算ROC曲线
+    fpr, tpr, _ = roc_curve(y_true, y_pred)
+    roc_auc = auc(fpr, tpr)
 
     # 计算各项指标
     metrics = {
@@ -87,15 +88,10 @@ def calculate_metrics(y_true, y_pred_proba):
         'Cutoff': cutoff  # cutoff
     }
 
-    # 根据模型的cutoff值计算ROC曲线
-    fpr, tpr, _ = roc_curve(y_true, y_pred)
-    roc_auc = auc(fpr, tpr)
-
     return metrics, fpr, tpr, roc_auc
 
+
 # 主程序
-
-
 def main():
     # 加载模型和数据
     model = load_model()
