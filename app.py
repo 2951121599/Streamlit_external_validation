@@ -103,6 +103,8 @@ def main():
     # 加载模型和数据
     model = load_model()
     X_val, y_true = load_validation_data()
+    print(f"X_val: {X_val}")
+    print(f"y_true: {y_true}")
 
     # 主要内容
     st.header("Model Performance Metrics")  # 模型性能指标
