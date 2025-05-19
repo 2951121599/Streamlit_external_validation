@@ -46,7 +46,7 @@ st.markdown("""
 @st.cache_resource
 def load_model():
     """加载预训练的深度学习模型"""
-    return tf.keras.models.load_model('data/MODEL.h5')
+    return tf.keras.models.load_model('data/MODEL_wang.h5')
 
 # 加载验证数据
 
@@ -54,13 +54,13 @@ def load_model():
 @st.cache_data
 def load_validation_data():
     """加载外部验证数据集"""
-    df = pd.read_excel('data/merge_external_validation.xlsx')
+    df = pd.read_excel('data/GSE135222_merge_external_validation_wang.xlsx')
     return df.iloc[:, :-2], df.iloc[:, -1]
 
 
 # 模型的cutoff值
 def find_model_cutoff():
-    df = pd.read_csv('data/testset_cutoff.csv')
+    df = pd.read_csv('data/val_combine_wang.csv')
     y_true = df.iloc[:, 0]
     # 如果有多列，则计算每一列的cutoff值
     # # 创建cutoff数据框
