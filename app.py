@@ -54,7 +54,7 @@ def load_model():
 @st.cache_data
 def load_validation_data():
     """加载外部验证数据集"""
-    df = pd.read_excel('data/merge_external_validation.xlsx')
+    df = pd.read_excel('data/merge_external_validation_yang.xlsx')
     return df.iloc[:, :-2], df.iloc[:, -1]
 
 
