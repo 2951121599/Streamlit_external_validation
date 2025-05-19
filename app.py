@@ -70,7 +70,7 @@ def find_model_cutoff():
     cutoff_values = []
     for col in y_pred.columns:
         fpr, tpr, thresholds = roc_curve(y_true, y_pred[col])
-        cutoff = round(thresholds[np.argmax(tpr - fpr)], 3)
+        cutoff = thresholds[np.argmax(tpr - fpr)]
         cutoff_values.append(cutoff)
         cutoff_df[col] = cutoff
     return cutoff_df
@@ -114,7 +114,7 @@ def main():
     
     # 显示cutoff数据框
     st.write("Model Cutoff:")
-    st.dataframe(cutoff_df)
+    st.dataframe(round(cutoff_df, 3))
         
     model_cutoff = cutoff_df.iloc[0, 1]
     print(f"model_cutoff: {model_cutoff}")
@@ -181,7 +181,7 @@ def main():
         metrics_df = pd.DataFrame({
             'Metric': ['AUC', 'Accuracy', 'Precision', 'Recall', 'F1 Score', 'Cutoff'],
             'Value': [metrics['AUC'], metrics['Accuracy'], metrics['Precision'],
-                      metrics['Recall'], metrics['F1 Score'], metrics['Cutoff']]
+                      metrics['Recall'], metrics['F1 Score'], round(metrics['Cutoff'], 3)]
         })
 
         # 设置显示格式为3位小数
