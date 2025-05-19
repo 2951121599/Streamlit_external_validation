@@ -46,7 +46,7 @@ st.markdown("""
 @st.cache_resource
 def load_model():
     """加载预训练的深度学习模型"""
-    return tf.keras.models.load_model('data/MODEL.h5')
+    return tf.keras.models.load_model('data/MODEL_yang.h5')
 
 # 加载验证数据
 
